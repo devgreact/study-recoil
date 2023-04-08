@@ -1,49 +1,60 @@
-# TodoItemCreator.js
+# TodoItem.js
+
+- TodoItem 컴포넌트는 todo 리스트의 값을 표시하는 동시에 텍스트를 변경하고 항목을 삭제할 수 있다.
+- todoListState를 읽고 항목 텍스트를 업데이트하고, 완료된 것으로 표시하고, 삭제하는 데 사용하는 setter 함수를 얻기 위해 useRecoilState()를 사용한다.
 
 ```js
-import React, { useState } from "react";
-import { useSetRecoilState } from "recoil";
+import React from "react";
+import { useRecoilState } from "recoil";
 import { todoListState } from "./TodoList";
 
-// 3. 고유한 Id 생성을 위한 유틸리티
-let id = 0;
-function getId() {
-  return id++;
+function replaceItemAtIndex(arr, index, newValue) {
+  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
 }
 
-const TodoItemCreator = () => {
-  const [inputValue, setInputValue] = useState("");
+function removeItemAtIndex(arr, index) {
+  return [...arr.slice(0, index), ...arr.slice(index + 1)];
+}
+const TodoItem = ({ item }) => {
+  const [todoList, setTodoList] = useRecoilState(todoListState);
+  const index = todoList.findIndex((listItem) => listItem === item);
 
-  // 1. 새로운 todo 아이템을 생성하기 위해
-  // TodoList.js에 정의한 todoListState 내용을
-  // 업데이트하는 setter 함수에 접근해야 한다.
-  // useSetRecoilState()을 사용하는 것은
-  // 컴포넌트가 값이 바뀔 때 리렌더링을 하기 위해 컴포넌트를 구독하지 않고도 값을 설정하게 해줍니다.
-  const setTodoList = useSetRecoilState(todoListState);
+  const editItemText = ({ target: { value } }) => {
+    const newList = replaceItemAtIndex(todoList, index, {
+      ...item,
+      text: value,
+    });
 
-  const addItem = () => {
-    // 2. 기존 todo 리스트를 기반으로 새 todo 리스트를 만들 수 있도록
-    // setter 함수의 updater 형식을 사용한다는 점에 유의해야 한다.
-    setTodoList((oldTodoList) => [
-      ...oldTodoList,
-      {
-        id: getId(),
-        text: inputValue,
-        isComplete: false,
-      },
-    ]);
-    setInputValue("");
+    setTodoList(newList);
   };
 
-  const onChange = ({ target: { value } }) => {
-    setInputValue(value);
+  const toggleItemCompletion = () => {
+    const newList = replaceItemAtIndex(todoList, index, {
+      ...item,
+      isComplete: !item.isComplete,
+    });
+
+    setTodoList(newList);
   };
+
+  const deleteItem = () => {
+    const newList = removeItemAtIndex(todoList, index);
+
+    setTodoList(newList);
+  };
+
   return (
     <div>
-      <input type="text" value={inputValue} onChange={onChange} />
-      <button onClick={addItem}>Add</button>
+      <input type="text" value={item.text} onChange={editItemText} />
+      <input
+        type="checkbox"
+        checked={item.isComplete}
+        onChange={toggleItemCompletion}
+      />
+      <button onClick={deleteItem}>X</button>
     </div>
   );
 };
-export default TodoItemCreator;
+
+export default TodoItem;
 ```
