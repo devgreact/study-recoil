@@ -1,81 +1,49 @@
-# 작업 1.
-
-- todo/TodoList.js
-- todo/TodoItemCreator.js
-- todo/TodoItem.js
-
-## App.js
+# TodoItemCreator.js
 
 ```js
-import TodoList from "./todo/TodoList";
+import React, { useState } from "react";
+import { useSetRecoilState } from "recoil";
+import { todoListState } from "./TodoList";
 
-function App() {
-  return (
-    <div className="App">
-      <TodoList />
-    </div>
-  );
+// 3. 고유한 Id 생성을 위한 유틸리티
+let id = 0;
+function getId() {
+  return id++;
 }
 
-export default App;
-```
+const TodoItemCreator = () => {
+  const [inputValue, setInputValue] = useState("");
 
-## TodoList.js
+  // 1. 새로운 todo 아이템을 생성하기 위해
+  // TodoList.js에 정의한 todoListState 내용을
+  // 업데이트하는 setter 함수에 접근해야 한다.
+  // useSetRecoilState()을 사용하는 것은
+  // 컴포넌트가 값이 바뀔 때 리렌더링을 하기 위해 컴포넌트를 구독하지 않고도 값을 설정하게 해줍니다.
+  const setTodoList = useSetRecoilState(todoListState);
 
-```js
-import React from "react";
-import { atom, useRecoilValue } from "recoil";
-import TodoItemCreator from "./TodoItemCreator";
-import TodoItem from "./TodoItem";
-// 1. Atoms
-// Atoms는 애플리케이션 상태의 source of truth를 갖는다.
-// todo 리스트에서 source of truth는 todo 아이템을 나타내는 객체로 이루어진 배열이 될 것이다.
-// atom 리스트를 todoListState라고 하고 이것을 atom() 함수를 이용해 생성
-// atom에 고유한 key를 주고 비어있는 배열 값을 default로 설정할 것이다.
-export const todoListState = atom({
-  key: "todoListState",
-  default: [],
-});
+  const addItem = () => {
+    // 2. 기존 todo 리스트를 기반으로 새 todo 리스트를 만들 수 있도록
+    // setter 함수의 updater 형식을 사용한다는 점에 유의해야 한다.
+    setTodoList((oldTodoList) => [
+      ...oldTodoList,
+      {
+        id: getId(),
+        text: inputValue,
+        isComplete: false,
+      },
+    ]);
+    setInputValue("");
+  };
 
-const TodoList = () => {
-  // 2. 동시에 읽고 쓰기 위함.
-  // atom의 항목을 읽기 위해, useRecoilValue() 훅을 우리의 TodoList 컴포넌트에서 사용할 수 있다.
-  const todoList = useRecoilValue(todoListState);
+  const onChange = ({ target: { value } }) => {
+    setInputValue(value);
+  };
   return (
-    <>
-      {/* 3. 목록생성 */}
-      <TodoItemCreator />
-      {/* 4. 목록 출력 */}
-      {todoList.map((todoItem) => (
-        <TodoItem key={todoItem.id} item={todoItem} />
-      ))}
-    </>
+    <div>
+      <input type="text" value={inputValue} onChange={onChange} />
+      <button onClick={addItem}>Add</button>
+    </div>
   );
 };
-
-export default TodoList;
-```
-
-## TodoItemCreator.js
-
-```js
-import React from "react";
-
-const TodoItemCreator = () => {
-  return <div>TodoItemCreator</div>;
-};
-
 export default TodoItemCreator;
-```
-
-## TodoItem.js
-
-```js
-import React from "react";
-
-const TodoItem = ({ item }) => {
-  return <div>TodoItem</div>;
-};
-
-export default TodoItem;
 ```
