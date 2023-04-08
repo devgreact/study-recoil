@@ -2,13 +2,13 @@ import React from "react";
 import { useRecoilState } from "recoil";
 import { todoListState } from "./TodoList";
 
-function replaceItemAtIndex(arr, index, newValue) {
-  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
-}
-
-function removeItemAtIndex(arr, index) {
+const removeItemAtIndex = (arr, index) => {
   return [...arr.slice(0, index), ...arr.slice(index + 1)];
-}
+};
+const replaceItemAtIndex = (arr, index, newValue) => {
+  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
+};
+
 const TodoItem = ({ item }) => {
   // TodoList 에 정의한  todoListState를 읽고 항목 텍스트를
   // 업데이트하고,

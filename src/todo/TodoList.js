@@ -3,13 +3,12 @@ import { atom, selector, useRecoilValue } from "recoil";
 import TodoItemCreator from "./TodoItemCreator";
 import TodoItem from "./TodoItem";
 import TodoListFilters, { todoListFilterState } from "./TodoListFilters";
+import TodoListStats from "./TodoListStats";
 export const todoListState = atom({
   key: "todoListState",
   default: [],
 });
 
-// 1. todoListFilterState와 todoListState를 사용해서
-// 우리는 필터링 된 리스트를 파생하는 filteredTodoListState selector를 구성할 수 있다.
 export const filteredTodoListState = selector({
   key: "FilteredTodoList",
   get: ({ get }) => {
@@ -28,10 +27,11 @@ export const filteredTodoListState = selector({
 });
 
 const TodoList = () => {
-  const todoList = useRecoilValue(todoListState);
+  //   const todoList = useRecoilValue(todoListState);
+  const todoList = useRecoilValue(filteredTodoListState);
   return (
     <>
-      {/* 2.  */}
+      <TodoListStats />
       <TodoListFilters />
       <TodoItemCreator />
       {todoList.map((todoItem) => (

@@ -1,73 +1,77 @@
-# TodoListStats.js
-
-- 우리는 다음 통계를 표시하려 한다.
-
-  - todo 항목들의 총개수
-  - 완료된 todo 항목들의 총개수
-  - 완료되지 않은 todo 항목들의 총개수
-  - 완료된 항목의 백분율
-
-- 각 통계에 대해 selector를 만들 수 있지만, 필요한 데이터를 포함하는 객체를 반환하는 selector 하나를 만드는 것이 더 쉬운 방법일 것이다. 우리는 이 selector를 todoListStatsState라고 부를 것이다.
-
-```js
-const todoListStatsState = selector({
-  key: "todoListStatsState",
-  get: ({ get }) => {
-    const todoList = get(todoListState);
-    const totalNum = todoList.length;
-    const totalCompletedNum = todoList.filter((item) => item.isComplete).length;
-    const totalUncompletedNum = totalNum - totalCompletedNum;
-    const percentCompleted = totalNum === 0 ? 0 : totalCompletedNum / totalNum;
-
-    return {
-      totalNum,
-      totalCompletedNum,
-      totalUncompletedNum,
-      percentCompleted,
-    };
-  },
-});
-```
-
-- todoListStatsState 값을 읽기 위해, 우리는 useRecoilValue()를 한 번 더 사용할 것이다.
+# TodoList.js
 
 ```js
 import React from "react";
-import { selector, useRecoilValue } from "recoil";
-import { todoListState } from "./TodoList";
-export const todoListStatsState = selector({
-  key: "TodoListStats",
-  get: ({ get }) => {
-    const todoList = get(todoListState);
-    const totalNum = todoList.length;
-    const totalCompletedNum = todoList.filter((item) => item.isComplete).length;
-    const totalUncompletedNum = totalNum - totalCompletedNum;
-    const percentCompleted =
-      totalNum === 0 ? 0 : (totalCompletedNum / totalNum) * 100;
+import { atom, selector, useRecoilValue } from "recoil";
+import TodoItemCreator from "./TodoItemCreator";
+import TodoItem from "./TodoItem";
+import TodoListFilters, { todoListFilterState } from "./TodoListFilters";
+import TodoListStats from "./TodoListStats";
+export const todoListState = atom({
+  key: "todoListState",
+  default: [],
+});
 
-    return {
-      totalNum,
-      totalCompletedNum,
-      totalUncompletedNum,
-      percentCompleted,
-    };
+export const filteredTodoListState = selector({
+  key: "FilteredTodoList",
+  get: ({ get }) => {
+    const filter = get(todoListFilterState);
+    const list = get(todoListState);
+
+    switch (filter) {
+      case "Show Completed":
+        return list.filter((item) => item.isComplete);
+      case "Show Uncompleted":
+        return list.filter((item) => !item.isComplete);
+      default:
+        return list;
+    }
   },
 });
-const TodoListStats = () => {
-  const { totalNum, totalCompletedNum, totalUncompletedNum, percentCompleted } =
-    useRecoilValue(todoListStatsState);
 
-  const formattedPercentCompleted = Math.round(percentCompleted * 100);
+const TodoList = () => {
+  //   const todoList = useRecoilValue(todoListState);
+  const todoList = useRecoilValue(filteredTodoListState);
 
   return (
-    <ul>
-      <li>Total items: {totalNum}</li>
-      <li>Items completed: {totalCompletedNum}</li>
-      <li>Items not completed: {totalUncompletedNum}</li>
-      <li>Percent completed: {formattedPercentCompleted}</li>
-    </ul>
+    <>
+      <TodoListStats />
+      <TodoListFilters />
+      <TodoItemCreator />
+      {todoList.map((todoItem) => (
+        <TodoItem key={todoItem.id} item={todoItem} />
+      ))}
+    </>
   );
 };
 
-export default TodoListStats;
+export default TodoList;
+```
+
+# TodoItem.js
+
+```js
+function replaceItemAtIndex(arr, index, newValue) {
+  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
+}
+
+function removeItemAtIndex(arr, index) {
+  return [...arr.slice(0, index), ...arr.slice(index + 1)];
+}
+```
+
+```js
+const removeItemAtIndex = (arr, index) => {
+  return [...arr.slice(0, index), ...arr.slice(index + 1)];
+};
+const replaceItemAtIndex = (arr, index, newValue) => {
+  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
+};
+```
+
+# TodoListStats.js
+
+```js
+//   const formattedPercentCompleted = Math.round(percentCompleted * 100);
+const formattedPercentCompleted = Math.round(percentCompleted);
 ```

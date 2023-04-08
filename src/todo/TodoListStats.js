@@ -1,5 +1,6 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
+import { selector, useRecoilValue } from "recoil";
+import { todoListState } from "./TodoList";
 export const todoListStatsState = selector({
   key: "TodoListStats",
   get: ({ get }) => {
@@ -22,7 +23,8 @@ const TodoListStats = () => {
   const { totalNum, totalCompletedNum, totalUncompletedNum, percentCompleted } =
     useRecoilValue(todoListStatsState);
 
-  const formattedPercentCompleted = Math.round(percentCompleted * 100);
+  //   const formattedPercentCompleted = Math.round(percentCompleted * 100);
+  const formattedPercentCompleted = Math.round(percentCompleted);
 
   return (
     <ul>
