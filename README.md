@@ -1,70 +1,144 @@
-# Getting Started with Create React App
+# Recoil(https://recoiljs.org/ko/)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 1. 설치
 
-## Available Scripts
+```
+npx create-react-app ./
+npm install recoil
+```
 
-In the project directory, you can run:
+## 2. 개념
 
-### `npm start`
+### Atom
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Atom은 상태(state)의 일부를 나타낸다.
+- Atoms는 어떤 컴포넌트에서나 읽고 쓸 수 있다.
+- atom의 값을 읽는 컴포넌트들은 암묵적으로 atom을 구독한다.
+- 그래서 atom에 어떤 변화가 있으면 그 atom을 구독하는 모든 컴포넌트들이 재 렌더링 되는 결과가 발생할 것이다
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```js
+const textState = atom({
+  key: "textState", // unique ID (with respect to other atoms/selectors)
+  default: "", // default value (aka initial value)
+});
+```
 
-### `npm test`
+#### useRecoilState()
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- 컴포넌트가 atom을 읽고 쓰게 하기 위해서 사용
 
-### `npm run build`
+- 컴포넌트가 atom을 읽고 쓰게 하기 위해서는 useRecoilState()를 아래와 같이 사용하면 된다.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```js
+function CharacterCounter() {
+  return (
+    <div>
+      <TextInput />
+      <CharacterCount />
+    </div>
+  );
+}
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+function TextInput() {
+  const [text, setText] = useRecoilState(textState);
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  const onChange = (event) => {
+    setText(event.target.value);
+  };
 
-### `npm run eject`
+  return (
+    <div>
+      <input type="text" value={text} onChange={onChange} />
+      <br />
+      Echo: {text}
+    </div>
+  );
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Selector
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Selector는 파생된 상태(derived state)의 일부를 나타낸다.
+- Recoil 에서의 함수 또는 파생된 상태.
+- 파생된 상태는 상태의 변화다.
+- Selector는 주어진 atom의 상태에 대해 항상 동일한 값을 반환하는 순수함수이다.
+- 파생된 상태란 atom의 상태에서 파생된 데이터, 즉 atom의 상태에 의존하는 동적인 데이터다.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- 파생된 상태를 어떤 방법으로든 주어진 상태를 수정하는 순수 함수에 전달된 상태의 결과물로 생각할 수 있다.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- 만약 Selector에 get함수만 제공된다면 Selector 함수는 읽기만 가능한 RecoilValueReadOnly 객체를 반환하고
+- set 함수가 함께 제공되면 Selector는 읽기, 쓰기가 가능한 RecoilState 객체를 반환한다.
 
-## Learn More
+```js
+const charCountState = selector({
+  key: "charCountState", // 내부적으로 atom을 식별하는데 사용되는 문자열
+  get: ({ get }) => {
+    const text = get(textState);
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    return text.length;
+  },
+});
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- key : 내부적으로 atom을 식별하는데 사용되는 문자열
+- get : 파생된 상태의 값을 평가하는 함수. 매개변수로 get 함수가 올 수 있는데 다른 atom이나 selector를 찾는데에 사용되는 함수이다.
+- Promise나 다른 atom,slelector를 반환할 수 있다.
+- set : 이 속성이 설정되면 selector는 쓰기 가능한 상태를 반환한다. 마찬가지로 get 함수가 매개변수로 올 수 있으며 set 함수도 올 수 있다.
+- dangerouslyAllowMutability : Selector의 순수함수를 보장하기 위한 옵션
 
-### Code Splitting
+#### useRecoilValue()
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- useRecoilValue() 훅을 사용해서 charCountState 값을 읽을 수 있다.
 
-### Analyzing the Bundle Size
+```js
+function CharacterCount() {
+  const count = useRecoilValue(charCountState);
+  return <>Character Count: {count}</>;
+}
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 3. Todo
 
-### Making a Progressive Web App
+```
+npx create-react-app ./
+npm install recoil
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### 3-1. index.js
 
-### Advanced Configuration
+```js
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import { RecoilRoot } from "recoil";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <RecoilRoot>
+      <App />
+    </RecoilRoot>
+  </React.StrictMode>
+);
+```
 
-### Deployment
+### 3-2. App.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```js
+import TodoList from "./todo/TodoList";
 
-### `npm run build` fails to minify
+function App() {
+  return (
+    <div className="App">
+      <TodoList />
+    </div>
+  );
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+export default App;
+```
+
+## 4. 제작
+
+- todo/TodoList.js
